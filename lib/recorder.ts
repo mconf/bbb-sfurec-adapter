@@ -5,8 +5,12 @@ import fs from "fs";
 import Ffmpeg, {FfmpegCommand} from "fluent-ffmpeg";
 import { generateSDP, SDPParameters } from "./sdp-utils";
 
+export type FfmpegCodecTypes = {
+  audio?: string;
+  video?: string;
+}
 export type FfmpegParameters = {
-  codec: string;
+  codecs: FfmpegCodecTypes;
   inputOptions?: Array<string>;
   outputOptions?: Array<string>;
 }
@@ -36,7 +40,7 @@ export class FFmpegRecorder extends EventEmitter {
     this.emit('progress', progress);
   }
 
-  private _handleError(error: Error) {
+  private _handleError(error: Error, stdout: any, stderr: any) {
     this.emit('error', error);
   }
 
@@ -56,15 +60,31 @@ export class FFmpegRecorder extends EventEmitter {
     fs.writeFile(sdpPath, this.sdp, (error) => {
       if (error) throw error;
 
-      this._command = Ffmpeg(sdpPath)
-        .inputOptions(this._config.ffmpegParameters.inputOptions || [])
-        .videoCodec(this._config.ffmpegParameters.codec)
-        .outputOption(this._config.ffmpegParameters.outputOptions || [])
-        .on('start', this._handleStart.bind(this))
-        .on('progress', this._handleProgress.bind(this))
-        .on('error', this._handleError.bind(this))
-        .on('end', this._handleEnd.bind(this))
-        .save(this._config.outputFile)
+      const ffmpegParameters = this._config.ffmpegParameters;
+
+      try {
+        this._command = Ffmpeg({
+          source: sdpPath,
+          logger: console,
+        }).inputOptions(ffmpegParameters.inputOptions || []);
+
+        if (ffmpegParameters.codecs.video) {
+          this._command = this._command.videoCodec(ffmpegParameters.codecs.video);
+        }
+
+        if (ffmpegParameters.codecs.audio) {
+          this._command = this._command.audioCodec(ffmpegParameters.codecs.audio);
+        }
+
+        this._command = this._command.outputOptions(ffmpegParameters.outputOptions || [])
+          .on('start', this._handleStart.bind(this))
+          .on('progress', this._handleProgress.bind(this))
+          .on('error', this._handleError.bind(this))
+          .on('end', this._handleEnd.bind(this))
+          .save(this._config.outputFile)
+      } catch (error) {
+        throw error;
+      }
     });
   }
 
