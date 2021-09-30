@@ -33,7 +33,7 @@ const generateSDP = (parameters: SDPParameters): string => {
     body = body
       + `m=${kind} ${rtpPort} ${rtpProfile} ${codecId}\r\n`
       + `a=rtcp:${rtcpPort}\r\n`
-      + `a=${direction || 'sendrecv'}\r\n`
+      +  (direction ? `a=${direction}\r\n` : '')
       + `c=IN IP4 ${mediaLevelIP || parameters.topLevelIP}\r\n`
       + `a=rtpmap:${codecId} ${codec}/${codecRate}\r\n`
       + `a=fmtp:${codecId} ${fmtpOpts || ''}\r\n`
