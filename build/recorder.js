@@ -23,7 +23,7 @@ class FFmpegRecorder extends events_1.default {
     _handleProgress(progress) {
         this.emit('progress', progress);
     }
-    _handleError(error) {
+    _handleError(error, stdout, stderr) {
         this.emit('error', error);
     }
     _handleEnd() {
@@ -35,15 +35,28 @@ class FFmpegRecorder extends events_1.default {
         fs_1.default.writeFile(sdpPath, this.sdp, (error) => {
             if (error)
                 throw error;
-            this._command = fluent_ffmpeg_1.default(sdpPath)
-                .inputOptions(this._config.ffmpegParameters.inputOptions || [])
-                .videoCodec(this._config.ffmpegParameters.codec)
-                .outputOption(this._config.ffmpegParameters.outputOptions || [])
-                .on('start', this._handleStart.bind(this))
-                .on('progress', this._handleProgress.bind(this))
-                .on('error', this._handleError.bind(this))
-                .on('end', this._handleEnd.bind(this))
-                .save(this._config.outputFile);
+            const ffmpegParameters = this._config.ffmpegParameters;
+            try {
+                this._command = fluent_ffmpeg_1.default({
+                    source: sdpPath,
+                    logger: console,
+                }).inputOptions(ffmpegParameters.inputOptions || []);
+                if (ffmpegParameters.codecs.video) {
+                    this._command = this._command.videoCodec(ffmpegParameters.codecs.video);
+                }
+                if (ffmpegParameters.codecs.audio) {
+                    this._command = this._command.audioCodec(ffmpegParameters.codecs.audio);
+                }
+                this._command = this._command.outputOptions(ffmpegParameters.outputOptions || [])
+                    .on('start', this._handleStart.bind(this))
+                    .on('progress', this._handleProgress.bind(this))
+                    .on('error', this._handleError.bind(this))
+                    .on('end', this._handleEnd.bind(this))
+                    .save(this._config.outputFile);
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
     stop() {

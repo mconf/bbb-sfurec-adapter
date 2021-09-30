@@ -1,8 +1,12 @@
 /// <reference types="node" />
 import EventEmitter from "events";
 import { SDPParameters } from "./sdp-utils";
+export declare type FfmpegCodecTypes = {
+    audio?: string;
+    video?: string;
+};
 export declare type FfmpegParameters = {
-    codec: string;
+    codecs: FfmpegCodecTypes;
     inputOptions?: Array<string>;
     outputOptions?: Array<string>;
 };
