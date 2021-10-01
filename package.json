@@ -1,6 +1,6 @@
 {
   "name": "bbb-sfurec-adapter",
-  "version": "1.0.0-dev.2",
+  "version": "1.0.0-dev.3",
   "description": "A RTP-to-WebM recording adapter for bbb-webrtc-sfu",
   "main": "build/index.js",
   "engines": {

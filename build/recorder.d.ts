@@ -19,6 +19,7 @@ export declare class FFmpegRecorder extends EventEmitter {
     private readonly _config;
     private _command?;
     sdp: string;
+    private _getOutputDirname;
     private _getSdpPath;
     private _handleStart;
     private _handleProgress;
