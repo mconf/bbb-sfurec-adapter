@@ -2,6 +2,7 @@
 
 import EventEmitter from "events";
 import fs from "fs";
+import path from "path";
 import Ffmpeg, {FfmpegCommand} from "fluent-ffmpeg";
 import { generateSDP, SDPParameters } from "./sdp-utils";
 
@@ -28,8 +29,12 @@ export class FFmpegRecorder extends EventEmitter {
 
   sdp: string;
 
+  private _getOutputDirname(outputFile: string): string {
+    return path.dirname(outputFile);
+  }
+
   private _getSdpPath(outputFile: string): string {
-    return `${outputFile}.sdp`;
+    return `${this._getOutputDirname(outputFile)}.sdp`;
   }
 
   private _handleStart(commandLine: string) {
@@ -57,35 +62,40 @@ export class FFmpegRecorder extends EventEmitter {
   start () {
     // Create SDP file in the FS so that ffmpeg can grab it
     const sdpPath: string = this._getSdpPath(this._config.outputFile);
-    fs.writeFile(sdpPath, this.sdp, (error) => {
-      if (error) throw error;
+    fs.mkdir(this._getOutputDirname(this._config.outputFile),
+      { recursive: true}, (error) => {
+        if (error) throw error;
 
-      const ffmpegParameters = this._config.ffmpegParameters;
+        fs.writeFile(sdpPath, this.sdp, (error) => {
+          if (error) throw error;
 
-      try {
-        this._command = Ffmpeg({
-          source: sdpPath,
-          logger: console,
-        }).inputOptions(ffmpegParameters.inputOptions || []);
+          const ffmpegParameters = this._config.ffmpegParameters;
 
-        if (ffmpegParameters.codecs.video) {
-          this._command = this._command.videoCodec(ffmpegParameters.codecs.video);
-        }
+          try {
+            this._command = Ffmpeg({
+              source: sdpPath,
+              logger: console,
+            }).inputOptions(ffmpegParameters.inputOptions || []);
 
-        if (ffmpegParameters.codecs.audio) {
-          this._command = this._command.audioCodec(ffmpegParameters.codecs.audio);
-        }
+            if (ffmpegParameters.codecs.video) {
+              this._command = this._command.videoCodec(ffmpegParameters.codecs.video);
+            }
 
-        this._command = this._command.outputOptions(ffmpegParameters.outputOptions || [])
-          .on('start', this._handleStart.bind(this))
-          .on('progress', this._handleProgress.bind(this))
-          .on('error', this._handleError.bind(this))
-          .on('end', this._handleEnd.bind(this))
-          .save(this._config.outputFile)
-      } catch (error) {
-        throw error;
-      }
-    });
+            if (ffmpegParameters.codecs.audio) {
+              this._command = this._command.audioCodec(ffmpegParameters.codecs.audio);
+            }
+
+            this._command = this._command.outputOptions(ffmpegParameters.outputOptions || [])
+              .on('start', this._handleStart.bind(this))
+              .on('progress', this._handleProgress.bind(this))
+              .on('error', this._handleError.bind(this))
+              .on('end', this._handleEnd.bind(this))
+              .save(this._config.outputFile)
+          } catch (error) {
+            throw error;
+          }
+        });
+      });
   }
 
   stop () {
