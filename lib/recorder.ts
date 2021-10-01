@@ -34,7 +34,7 @@ export class FFmpegRecorder extends EventEmitter {
   }
 
   private _getSdpPath(outputFile: string): string {
-    return `${this._getOutputDirname(outputFile)}.sdp`;
+    return `${outputFile}.sdp`;
   }
 
   private _handleStart(commandLine: string) {
