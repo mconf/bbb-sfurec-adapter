@@ -19,7 +19,7 @@ class FFmpegRecorder extends events_1.default {
         return path_1.default.dirname(outputFile);
     }
     _getSdpPath(outputFile) {
-        return `${this._getOutputDirname(outputFile)}.sdp`;
+        return `${outputFile}.sdp`;
     }
     _handleStart(commandLine) {
         this.emit('started', commandLine);
