@@ -99,6 +99,6 @@ export class FFmpegRecorder extends EventEmitter {
   }
 
   stop () {
-    this._command?.kill('SIGSTOP');
+    this._command?.kill('SIGTERM');
   }
 }
