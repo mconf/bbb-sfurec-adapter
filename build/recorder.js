@@ -69,7 +69,7 @@ class FFmpegRecorder extends events_1.default {
     }
     stop() {
         var _a;
-        (_a = this._command) === null || _a === void 0 ? void 0 : _a.kill('SIGSTOP');
+        (_a = this._command) === null || _a === void 0 ? void 0 : _a.kill('SIGTERM');
     }
 }
 exports.FFmpegRecorder = FFmpegRecorder;
